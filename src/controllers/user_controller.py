@@ -1,6 +1,11 @@
-from flask import render_template
+from src.models.users import User
 
 def home ():
     return "hello Thẽo thẽo"
 def get_list ():
-    pass
+    users = User.query.all()
+    print(users)
+    return {
+        "avatar": "user.avatar",
+        "email": "user.email"
+    }

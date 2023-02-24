@@ -1,8 +1,6 @@
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import Column, Integer, String, SmallInteger, DateTime, TIMESTAMP,Boolean
-from main import app
-
-db = SQLAlchemy(app)
+from src.models.shared import db
 
 class User (db.Model):
     __tablename__ = "user"

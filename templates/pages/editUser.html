@@ -1,0 +1,64 @@
+{% extends "layout.html" %}
+{% block body %}
+
+ <div class="container"> 
+    <h2>{{ 'Update User' if is_update else 'Insert user' }}</h2>
+
+    <form action= "{{ url_for('user_routes.insert_user') if not is_update else url_for('user_routes.update_user',user_id = user.id) }}" method="POST" >
+      
+      {% if is_update %}
+      <label for="id">User name:</label><br>
+      <input type="number" id="id" name="id" readonly value="{{user.id}}" ><br>
+      {% endif %}
+
+      <label for="username">User name:</label><br>
+      <input type="text" id="username" name="username" value="{{ user.username if is_update else '' }}"><br>
+
+      <label for="full_name">Full name:</label><br>
+      <input type="text" id="full_name" name="full_name" value="{{ user.full_name if is_update else '' }}"><br>
+
+      <label for="email">Email:</label><br>
+      <input type="text" id="email" name="email" value="{{ user.email if is_update else '' }}"><br>
+
+      <label for="phone_number">Phone Number:</label><br>
+      <input type="number" id="phone_number" name="phone_number" value="{{ user.phone_number if is_update else '' }}"><br>
+
+      <label for="last_login_date">Last Login Date:</label><br>
+      <input type="datetime-local" id="last_login_date" name="last_login_date" value="{{ user.last_login_date if is_update else '' }}"><br>
+      
+      <label for="view_costs">View Costs:</label><br>
+      <input type="checkbox" id="view_costs" name="view_costs" 
+        {% if is_update %} 
+          {% if user.view_costs %}
+            checked
+          {% endif %}
+        {% endif %}>
+       <br>
+      
+      <label for="report_access">Report Access:</label><br>
+      <input type="checkbox" id="report_access" name="report_access" 
+      {% if is_update %} 
+      {% if user.report_access %} checked {% endif %}
+      {% endif %}><br>
+
+      <label for="enabled">Enabled:</label><br>
+      <input type="checkbox" id="enabled" name="enabled" {% if is_update %} 
+      {% if user.enabled %} checked {% endif %}
+      {% endif %}><br>
+
+      <label for="is_corporated">Is Corporated:</label><br>
+      <input type="checkbox" id="is_corporated" name="is_corporated" {% if is_update %} 
+      {% if user.is_corporated %} checked {% endif %} 
+      {% endif %}><br>
+
+      <label for="created_on">Create on:</label><br>
+      <input type="date" id="created_on" name="created_on" value="{{ user.created_on if is_update else '' }}"><br>
+
+      <label for="modified_on">Modified on:</label><br>
+      <input type="date" id="modified_on" name="modified_on" value="{{ user.modified_on if is_update else '' }}"><br><br>
+
+      <button type="submit">{{ 'Update user' if is_update else 'Insert user' }}</button>
+    </form> 
+  </div>
+
+{% endblock %}

@@ -37,8 +37,8 @@ def inser_user():
     }
     response = requests.post(url=f"{API_URL}/api/user_add/", json=data)
     res = response.json()
-
     if res["success"]:
-        return redirect(url_for('user_routes.get_list'))
+        # return redirect(url_for('/user/list/'))
+        return "Succesfull"
     else:
         return res["message"]

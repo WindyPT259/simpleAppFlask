@@ -1,13 +1,9 @@
 {% extends "layout.html" %}
 {% block body %}
- <div class="container"> 
-
-<button onclick="location.href='/user/addForm/'"> Insert</button>
-<button> Update</button>
-
+<div class="container"> 
 <div className="datatable scroll">
   <h1>List of Users</h1>
-  <table class="table table-hover">
+  <table class="table table-hover" scroll>
     <thead>
       <tr>
       {% for header in headers %}
@@ -18,6 +14,7 @@
       <tbody>
       {% for user in users %}
       <tr>
+        <!-- <td><input type="checkbox" name="check" value="{{user.id}}"></td> -->
         <td scope="row">{{user.id}}</td>
         <td>{{user.username}}</td>
         <td>{{user.full_name}}</td>
@@ -30,9 +27,22 @@
         <td>{{user.is_corporated}}</td>
         <td>{{user.created_on}}</td>
         <td>{{user.modified_on}}</td>
+        <td><button class="btn btn-primary btn-update"  onclick="getUserUpdate('{{user.id}}')"> Update</button></td>
       </tr>
       {% endfor %}
     </tbody>
   </table>
+  <div style="display: flex; justify-content: end;">
+    <button onclick="location.href='/user/addForm/'" class="btn btn-primary btn-add"> Insert</button>
+  </div>
+
  </div>
+{% endblock %}
+
+{% block script %}
+<script>
+  function getUserUpdate(userId){
+    window.location.href = `/user/updateForm/${userId}`; // Chuyển đến trang update
+}
+</script>
 {% endblock %}

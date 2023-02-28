@@ -1,4 +1,3 @@
-
 from flask import render_template, request, redirect, url_for
 import requests
 
@@ -17,11 +16,11 @@ def get_list():
 
 
 def add_user_form():
-    return render_template('pages/insertUser.html')
+    is_update = False
+    return render_template('pages/editUser.html', is_update=is_update)
 
 
-def inser_user():
-
+def insert_user():
     data = {
         'username': request.form['username'],
         'full_name': request.form['full_name'],
@@ -36,6 +35,40 @@ def inser_user():
         'modified_on': request.form['modified_on']
     }
     response = requests.post(url=f"{API_URL}/api/user_add/", json=data)
+    res = response.json()
+
+    if res["success"]:
+        return redirect(url_for('user_routes.get_list'))
+    else:
+        return res["message"]
+
+
+def update_user_form(user_id):
+    is_update = True
+    response = requests.get(url=f"{API_URL}/api/user/{user_id}").json()
+    if response["success"]:
+        user = response["data"]
+        return render_template('pages/editUser.html', is_update=is_update, user=user)
+    else:
+        return response["message"]
+
+
+def update_user(user_id):
+    data = {
+        'username': request.form['username'],
+        'full_name': request.form['full_name'],
+        'email': request.form['email'],
+        'phone_number': request.form['phone_number'],
+        'report_access': True if request.form.get('report_access') == "" else False,
+        'view_costs': True if request.form.get('view_costs') == "" else False,
+        'enabled': True if request.form.get('enabled') == "" else False,
+        'is_corporated': True if request.form.get('is_corporated') == "" else False,
+        'last_login_date': request.form['last_login_date'],
+        'created_on': request.form['created_on'],
+        'modified_on': request.form['modified_on']
+    }
+    response = requests.post(
+        url=f"{API_URL}/api/user_update/{user_id}", json=data)
     res = response.json()
 
     if res["success"]:

@@ -21,16 +21,17 @@ def add_user_form():
 
 
 def inser_user():
+
     data = {
         'username': request.form['username'],
         'full_name': request.form['full_name'],
         'email': request.form['email'],
         'phone_number': request.form['phone_number'],
-        'report_access': True if request.form.get('report_access') == 'on' else False,
-        'view_costs': True if request.form.get('view_costs') == 'on' else False,
+        'report_access': True if request.form.get('report_access') == "" else False,
+        'view_costs': True if request.form.get('view_costs') == "" else False,
+        'enabled': True if request.form.get('enabled') == "" else False,
+        'is_corporated': True if request.form.get('is_corporated') == "" else False,
         'last_login_date': request.form['last_login_date'],
-        'enabled': True if request.form.get('enabled') == 'on' else False,
-        'is_corporated': True if request.form.get('is_corporated') == 'on' else False,
         'created_on': request.form['created_on'],
         'modified_on': request.form['modified_on']
     }

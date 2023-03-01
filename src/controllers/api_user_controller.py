@@ -1,10 +1,12 @@
 from src.models.users import User
 from src.models.shared import db
 from flask import jsonify, request
-from sqlalchemy import text
-
+from sqlalchemy import text, exc
+import re
 
 # GET LIST USER
+
+
 def get_list():
     try:
         query = text(
@@ -20,16 +22,20 @@ def get_list():
             users_data.append(user_data)
 
         results = {
-            "status_code": 200,
-            "success": True,
+            "status_code": 200, "success": True,
             "data": {"userList": users_data, "headerList": column_names}
         }
-    except Exception as e:
+    except exc.ProgrammingError as e:
+        pattern = re.compile(r"\((\d+), \"(.+?)\"\)")
+        match = pattern.search(str(e)).group(2)
         results = {
-            "status_code": 500,
-            "success": False,
-            "message": str(e)
+            "status_code": 400, "success": False, "message": match
         }
+    except Exception:
+        pattern = re.compile(r"\((\d+), \"(.+?)\"\)")
+        match = pattern.search(str(e)).group(2)
+        results = {"status_code": 500, "success": False, "message": match}
+
     return jsonify(results)
 
 
@@ -57,9 +63,7 @@ def get_user(user_id):
         })
     else:
         return jsonify({
-            'success': False,
-            "status_code": 500,
-            'message': 'User not found'
+            'success': False, "status_code": 400, 'message': 'User not found'
         })
 
 
@@ -82,16 +86,23 @@ def insert_user():
                     last_login_date, enabled, is_corporated, created_on, modified_on)
         db.session.add(user)
         db.session.commit()
+
         results = {
-            "status_code": 200,
-            "success": True,
+            "status_code": 200, "success": True,
+            "message": "User has been added successfully"
+        }
+
+    except exc.IntegrityError:
+        results = {"status_code": 400, "success": False,
+                   "message": "User already existing."}
+    except exc.DataError:
+        results = {
+            "status_code": 400, "success": False, "message": "Incorrect type of value"
         }
     except Exception as e:
-        results = {
-            "status_code": 500,
-            "success": False,
-            "message": str(e)
-        }
+        pattern = re.compile(r"\((\d+), \"(.+?)\"\)")
+        match = pattern.search(str(e)).group(2)
+        results = {"status_code": 400, "success": False, "message": match}
     return jsonify(results)
 
 
@@ -117,16 +128,18 @@ def update_user(user_id):
             db.session.commit()
 
             results = {
-                "status_code": 200,
-                "success": True,
-                'message': 'User updated successfully'
+                "status_code": 200, "success": True,
+                "message": f"User with id {user_id} has been updated successfully."
             }
-    except Exception as e:
+
+    except exc.DataError:
         results = {
-            "status_code": 500,
-            "success": False,
-            "message": str(e)
+            "status_code": 400, "success": False, "message": "Incorrect type of value"
         }
+    except Exception as e:
+        pattern = re.compile(r"\((\d+), \"(.+?)\"\)")
+        match = pattern.search(str(e)).group(2)
+        results = {"status_code": 400, "success": False, "message": match}
     return jsonify(results)
 
 ### ------API get data using nativeQuery------------------------------------------------------########
@@ -134,14 +147,13 @@ def update_user(user_id):
 
 # GET LIST USER
 def get_list_native_query():
+
     try:
-        query = text(
-            "SELECT column_name FROM information_schema.columns WHERE table_name = 'user' AND table_schema = 'sampleapp'")
+        query = text("SHOW COLUMNS FROM user")
         columns = db.session.execute(query)
         column_names = [column[0] for column in columns]
 
-        query = text(
-            "SELECT * FROM user")
+        query = text("SELECT * FROM user")
         users = db.session.execute(query)
         users_data = []
         for user in users:
@@ -155,12 +167,18 @@ def get_list_native_query():
             "success": True,
             "data": {"userList": users_data, "headerList": column_names}
         }
-    except Exception as e:
+
+    except exc.ProgrammingError as e:
+        pattern = re.compile(r"\((\d+), \"(.+?)\"\)")
+        match = pattern.search(str(e)).group(2)
         results = {
-            "status_code": 500,
-            "success": False,
-            "message": str(e)
+            "status_code": 400, "success": False, "message": match
         }
+    except Exception:
+        pattern = re.compile(r"\((\d+), \"(.+?)\"\)")
+        match = pattern.search(str(e)).group(2)
+        results = {"status_code": 500, "success": False, "message": match}
+
     return jsonify(results)
 
 
@@ -196,15 +214,22 @@ def insert_user_native_query():
         })
         db.session.commit()
         results = {
-            "status_code": 200,
-            "success": True,
+            "status_code": 200, "success": True,
+            "message": "User has been added successfully"
+        }
+
+    except exc.IntegrityError:
+        results = {"status_code": 400, "success": False,
+                   "message": "User already existing."}
+    except exc.DataError:
+        results = {
+            "status_code": 400, "success": False, "message": "Incorrect type of value"
         }
     except Exception as e:
-        results = {
-            "status_code": 500,
-            "success": False,
-            "message": str(e)
-        }
+        pattern = re.compile(r"\((\d+), \"(.+?)\"\)")
+        match = pattern.search(str(e)).group(2)
+        results = {"status_code": 400, "success": False, "message": match}
+
     return jsonify(results)
 
 
@@ -234,14 +259,17 @@ def update_user_native_query(user_id):
                                    'user_id': user_id})
         db.session.commit()
         results = {
-            "status_code": 200,
-            "success": True,
+            "status_code": 200, "success": True,
             "message": f"User with id {user_id} has been updated successfully."
         }
-    except Exception as e:
+
+    except exc.DataError:
         results = {
-            "status_code": 500,
-            "success": False,
-            "message": str(e)
+            "status_code": 400, "success": False, "message": "Incorrect type of value"
         }
+    except Exception as e:
+        pattern = re.compile(r"\((\d+), \"(.+?)\"\)")
+        match = pattern.search(str(e)).group(2)
+        results = {"status_code": 400, "success": False, "message": match}
+
     return jsonify(results)

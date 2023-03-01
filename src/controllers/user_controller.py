@@ -1,11 +1,10 @@
 from flask import render_template, request, redirect, url_for
 import requests
 
+from config import API_URL
 
 
 def get_list():
-    users = User.query.all()
-
     response = requests.get(url=f"{API_URL}/api/user_list/")
     res = response.json()
     if res['success']:

@@ -8,5 +8,3 @@ user_routes.route('/user/update/<int:user_id>', methods=['POST'])(update_user)
 user_routes.route("/user/addForm/")(add_user_form)
 user_routes.route("/user/updateForm/<int:user_id>",
                   methods=['GET'])(update_user_form)
-
-                  

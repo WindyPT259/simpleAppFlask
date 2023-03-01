@@ -1,4 +1,4 @@
-from src.models.users import User
+from src.models.users import UserApp
 from src.models.shared import db
 from flask import jsonify, request
 from sqlalchemy import text, exc
@@ -9,16 +9,20 @@ import re
 
 def get_list():
     try:
-        query = text("SHOW COLUMNS FROM user")
+        query = text(
+            "SELECT column_name FROM information_schema.columns WHERE table_name = 'user_app'")
+        connection = db.session.connection()
+
         columns = db.session.execute(query)
         column_names = [column[0] for column in columns]
-        users = User.query.all()
+        users = UserApp.query.all()
         users_data = []
         for user in users:
             user_data = {}
             for column_name in column_names:
                 user_data[column_name] = getattr(user, column_name)
             users_data.append(user_data)
+        connection.close()
 
         results = {
             "status_code": 200, "success": True,
@@ -40,7 +44,7 @@ def get_list():
 
 # GET USER
 def get_user(user_id):
-    user = User.query.get_or_404(user_id)
+    user = UserApp.query.get_or_404(user_id)
     if user:
         return jsonify({
             'success': True,
@@ -81,8 +85,8 @@ def insert_user():
         created_on = request.json['created_on']
         modified_on = request.json['modified_on']
 
-        user = User(username, full_name, email, phone_number, report_access, view_costs,
-                    last_login_date, enabled, is_corporated, created_on, modified_on)
+        user = UserApp(username, full_name, email, phone_number, report_access, view_costs,
+                       last_login_date, enabled, is_corporated, created_on, modified_on)
         db.session.add(user)
         db.session.commit()
 
@@ -108,7 +112,7 @@ def insert_user():
 # UPDATE USER
 def update_user(user_id):
     try:
-        user = User.query.get_or_404(user_id)
+        user = UserApp.query.get_or_404(user_id)
         if user:
             data = request.get_json()  # data to json
 
@@ -148,19 +152,21 @@ def update_user(user_id):
 def get_list_native_query():
 
     try:
-        query = text("SHOW COLUMNS FROM user")
+        query = text(
+            "SELECT column_name FROM information_schema.columns WHERE table_name = 'user_app'")
+        connection = db.session.connection()
         columns = db.session.execute(query)
         column_names = [column[0] for column in columns]
 
-        query = text("SELECT * FROM user")
+        query = text("SELECT * FROM user_app")
         users = db.session.execute(query)
         users_data = []
-        for user in users:
+        for user in users.fetchall():
             user_data = {}
             for column_name in column_names:
                 user_data[column_name] = getattr(user, column_name)
             users_data.append(user_data)
-
+        connection.close()
         results = {
             "status_code": 200,
             "success": True,
@@ -173,7 +179,7 @@ def get_list_native_query():
         results = {
             "status_code": 400, "success": False, "message": match
         }
-    except Exception:
+    except Exception as e:
         pattern = re.compile(r"\((\d+), \"(.+?)\"\)")
         match = pattern.search(str(e)).group(2)
         results = {"status_code": 500, "success": False, "message": match}
@@ -197,7 +203,8 @@ def insert_user_native_query():
         modified_on = request.json['modified_on']
 
         query = text(
-            "INSERT INTO user (username, full_name, email, phone_number, report_access, view_costs, last_login_date, enabled, is_corporated, created_on, modified_on) VALUES (:username, :full_name, :email, :phone_number, :report_access, :view_costs, :last_login_date, :enabled, :is_corporated, :created_on, :modified_on)")
+            "INSERT INTO user_app (username, full_name, email, phone_number, report_access, view_costs, last_login_date, enabled, is_corporated, created_on, modified_on) VALUES (:username, :full_name, :email, :phone_number, :report_access, :view_costs, :last_login_date, :enabled, :is_corporated, :created_on, :modified_on)")
+        connection = db.session.connection()
         db.session.execute(query, {
             'username': username,
             'full_name': full_name,
@@ -212,6 +219,7 @@ def insert_user_native_query():
             'modified_on': modified_on
         })
         db.session.commit()
+        connection.close()
         results = {
             "status_code": 200, "success": True,
             "message": "User has been added successfully"
@@ -248,15 +256,18 @@ def update_user_native_query(user_id):
         modified_on = request.json['modified_on']
 
         query = text(
-            "UPDATE user SET username=:username, full_name=:full_name, email=:email, phone_number=:phone_number, "
+            "UPDATE user_app SET username=:username, full_name=:full_name, email=:email, phone_number=:phone_number, "
             "report_access=:report_access, view_costs=:view_costs, last_login_date=:last_login_date, enabled=:enabled, "
             "is_corporated=:is_corporated, created_on =:created_on , modified_on=:modified_on WHERE id=:user_id")
+
+        connection = db.session.connection()
         db.session.execute(query, {'username': username, 'full_name': full_name, 'email': email,
                                    'phone_number': phone_number, 'report_access': report_access,
                                    'view_costs': view_costs, 'last_login_date': last_login_date,
                                    'enabled': enabled, 'is_corporated': is_corporated, 'created_on': created_on, 'modified_on': modified_on,
                                    'user_id': user_id})
         db.session.commit()
+        connection.close()
         results = {
             "status_code": 200, "success": True,
             "message": f"User with id {user_id} has been updated successfully."

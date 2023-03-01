@@ -9,8 +9,7 @@ import re
 
 def get_list():
     try:
-        query = text(
-            "SELECT column_name FROM information_schema.columns WHERE table_name = 'user' AND table_schema = 'sampleapp'")
+        query = text("SHOW COLUMNS FROM user")
         columns = db.session.execute(query)
         column_names = [column[0] for column in columns]
         users = User.query.all()

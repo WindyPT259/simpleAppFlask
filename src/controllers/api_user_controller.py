@@ -85,11 +85,13 @@ def insert_user():
         created_on = request.json['created_on']
         modified_on = request.json['modified_on']
 
+        connection = db.session.connection()
         user = UserApp(username, full_name, email, phone_number, report_access, view_costs,
                        last_login_date, enabled, is_corporated, created_on, modified_on)
         db.session.add(user)
         db.session.commit()
 
+        connection.close()
         results = {
             "status_code": 200, "success": True,
             "message": "User has been added successfully"
@@ -112,6 +114,7 @@ def insert_user():
 # UPDATE USER
 def update_user(user_id):
     try:
+        connection = db.session.connection()
         user = UserApp.query.get_or_404(user_id)
         if user:
             data = request.get_json()  # data to json
@@ -134,7 +137,7 @@ def update_user(user_id):
                 "status_code": 200, "success": True,
                 "message": f"User with id {user_id} has been updated successfully."
             }
-
+        connection.close()
     except exc.DataError:
         results = {
             "status_code": 400, "success": False, "message": "Incorrect type of value"

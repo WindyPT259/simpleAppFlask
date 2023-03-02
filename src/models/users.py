@@ -3,8 +3,8 @@ from sqlalchemy import Column, Integer, String, SmallInteger, DateTime, TIMESTAM
 from src.models.shared import db
 
 
-class User(db.Model):
-    _tablename_ = "user"
+class UserApp(db.Model):
+    _tablename_ = "user_app"
     _table_args_ = {'extend_existing': True}
     id = Column(Integer, primary_key=True, nullable=False, autoincrement=True)
     username = Column(String(255), nullable=False, unique=True)
@@ -34,4 +34,4 @@ class User(db.Model):
         self.created_on = created_on
 
     def __repr__(self) -> str:
-        return '<User {}>'.format(self.username)
+        return '<UserApp {}>'.format(self.username)

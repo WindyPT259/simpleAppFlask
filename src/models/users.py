@@ -1,10 +1,20 @@
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import Column, Integer, String, SmallInteger, DateTime, TIMESTAMP, BOOLEAN
 from src.models.shared import db
+from sqlalchemy.orm import declarative_base
+from datetime import datetime
+
+Base = declarative_base()
+
+
+class User(Base):
+    __tablename__ = "user_orgarnization"
+    id = Column(Integer, primary_key=True, nullable=False, autoincrement=True)
+    name = Column(String(255), nullable=False, unique=True)
 
 
 class UserApp(db.Model):
-    _tablename_ = "user_app"
+    __tablename__ = "user_app"
     _table_args_ = {'extend_existing': True}
     id = Column(Integer, primary_key=True, nullable=False, autoincrement=True)
     username = Column(String(255), nullable=False, unique=True)

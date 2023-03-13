@@ -1,2 +1,0 @@
-# simpleAppFlask
-Run : Startup.bat

@@ -7,6 +7,15 @@ SQLALCHEMY_POOL_TIMEOUT = 20
 
 DEBUG = True
 
+# Celery configuration
+CELERY_BROKER_URL = 'redis://localhost:6379/0'
+CELERY_RESULT_BACKEND = 'db+' + SQLALCHEMY_DATABASE_URI
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_INCLUDE = ['tasks']
+
+
 # Enable protection agains *Cross-site Request Forgery (CSRF)*
 CSRF_ENABLED = True
 

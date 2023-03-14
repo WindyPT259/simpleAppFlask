@@ -5,7 +5,7 @@ from config import API_URL
 
 
 def get_list():
-    response = requests.get(url=f"{API_URL}/api/user_list/")
+    response = requests.get(url=f"{API_URL}/api/user_list_1/")
     res = response.json()
     if res['success']:
         users = res['data']['userList']
@@ -34,7 +34,7 @@ def insert_user():
         'created_on': request.form['created_on'],
         'modified_on': request.form['modified_on']
     }
-    response = requests.post(url=f"{API_URL}/api/user_add/", json=data)
+    response = requests.post(url=f"{API_URL}/api/user_add_1/", json=data)
     res = response.json()
 
     if res["success"]:
@@ -45,7 +45,7 @@ def insert_user():
 
 def update_user_form(user_id):
     is_update = True
-    response = requests.get(url=f"{API_URL}/api/user/{user_id}").json()
+    response = requests.get(url=f"{API_URL}/api/user_1/{user_id}").json()
     if response["success"]:
         user = response["data"]
         return render_template('pages/editUser.html', is_update=is_update, user=user)
@@ -68,7 +68,7 @@ def update_user(user_id):
         'modified_on': request.form['modified_on']
     }
     response = requests.post(
-        url=f"{API_URL}/api/user_update/{user_id}", json=data)
+        url=f"{API_URL}/api/user_update_1/{user_id}", json=data)
     res = response.json()
 
     if res["success"]:

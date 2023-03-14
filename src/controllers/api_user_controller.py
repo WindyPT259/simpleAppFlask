@@ -190,7 +190,39 @@ def get_list_native_query():
     return jsonify(results)
 
 
+# GET USER
+def get_user_native_query(user_id):
+    try:
+        query = text(
+            "SELECT column_name FROM information_schema.columns WHERE table_name = 'user_app'")
+        connection = db.session.connection()
+        columns = db.session.execute(query)
+        column_names = [column[0] for column in columns]
+
+        query = text("SELECT * FROM user_app WHERE id = :user_id")
+        user = db.session.execute(query, {'user_id': user_id})
+
+        users_data = []
+        for user in user.fetchall():
+            user_data = {}
+            for column_name in column_names:
+                user_data[column_name] = getattr(user, column_name)
+            users_data.append(user_data)
+        results = {
+            "status_code": 200,
+            "success": True,
+            "data": users_data[0]
+        }
+    except Exception:
+        results = {
+            "status_code": 400, "success": False, "message": "User not found"
+        }
+
+    return jsonify(results)
+
 # INSERT USER
+
+
 def insert_user_native_query():
     try:
         username = request.json['username']

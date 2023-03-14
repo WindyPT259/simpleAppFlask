@@ -6,4 +6,4 @@ start CMD /K redis-server
 start CMD /K celery -A main.celery worker -l info
 start CMD /K celery -A main.celery beat -l info -s log/celerybeat-schedule
 start CMD /K py main.py
-start CMD /K celery -A main.celery flower
+@REM start CMD /K celery -A main.celery flower --port=5555 --broker=redis://redis:6379/0

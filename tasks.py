@@ -1,8 +1,8 @@
-from main import celery
+from main_thao import celery
 from datetime import datetime
 from src.models.users import UserApp
 from src.models.shared import db
-from main import app
+from main_thao import app
 
 
 # task một decorator để định nghĩa một task trong Celery.

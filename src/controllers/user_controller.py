@@ -75,3 +75,7 @@ def update_user(user_id):
         return redirect(url_for('user_routes.get_list'))
     else:
         return res["message"]
+
+
+def test_user(time):
+    print("tesst {}", time)

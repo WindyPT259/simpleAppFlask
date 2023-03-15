@@ -1,12 +1,13 @@
-from src.models.users import UserApp
-from src.models.shared import db
 from flask import jsonify, request
 from sqlalchemy import text, exc
+import pandas as pd
 import re
 
+from src.models.shared import db
+from src.models.users import UserApp
+
+
 # GET LIST USER
-
-
 def get_list():
     try:
         query = text(
@@ -148,11 +149,12 @@ def update_user(user_id):
         results = {"status_code": 400, "success": False, "message": match}
     return jsonify(results)
 
+
 ### ------API get data using nativeQuery------------------------------------------------------########
 
 
-# GET LIST USER
-def get_list_native_query():
+# GET LIST USER FROM DB
+def get_list_user_from_db():
 
     try:
         query = text(
@@ -186,6 +188,43 @@ def get_list_native_query():
         pattern = re.compile(r"\((\d+), \"(.+?)\"\)")
         match = pattern.search(str(e)).group(2)
         results = {"status_code": 500, "success": False, "message": match}
+    return results
+
+
+# GET LIST USER
+def get_list_native_query():
+    results = get_list_user_from_db()
+    return jsonify(results)
+
+
+# GET USER
+def get_user_native_query(user_id):
+    try:
+        query = text(
+            "SELECT column_name FROM information_schema.columns WHERE table_name = 'user_app'")
+        connection = db.session.connection()
+        columns = db.session.execute(query)
+        column_names = [column[0] for column in columns]
+
+        query = text("SELECT * FROM user_app WHERE id = :user_id")
+        user = db.session.execute(query, {'user_id': user_id})
+
+        users_data = []
+        for user in user.fetchall():
+            user_data = {}
+            for column_name in column_names:
+                user_data[column_name] = getattr(user, column_name)
+            users_data.append(user_data)
+        connection.close()
+        results = {
+            "status_code": 200,
+            "success": True,
+            "data": users_data[0]
+        }
+    except Exception:
+        results = {
+            "status_code": 400, "success": False, "message": "User not found"
+        }
 
     return jsonify(results)
 
@@ -286,3 +325,72 @@ def update_user_native_query(user_id):
         results = {"status_code": 400, "success": False, "message": match}
 
     return jsonify(results)
+
+
+# EXPORT USER LIST TO .EXCEL, .CSV, .JSON FILE
+def export_user_native_query():
+
+    results = get_list_user_from_db()
+    if results['success']:
+        # Convert data to pandas DataFrame and export to CSV file
+        df = pd.DataFrame(data=results['data']['userList'],
+                          columns=results['data']['headerList'])
+
+        # export to csv
+        df.to_csv(r'D:\WORKS\04_PYTHON\users_List.csv', index=False)
+
+        # export user list to excel file
+        df.to_excel(r'D:\WORKS\04_PYTHON\users_Lists.xlsx', index=False)
+
+        # export user list to json file
+        df.to_json(r'D:\WORKS\04_PYTHON\users_List.json',
+                   force_ascii=False, orient='records')
+
+        return jsonify({"status_code": 200, "success": True, "message": " Exported user file successfully"})
+    else:
+        return jsonify({"status_code": 400, "success": False, "message": " Can not export data"})
+
+
+# IMPORT .EXCEL, .CSV, .JSON FILE
+def import_user_native_query():
+    if 'file' not in request.files:
+        return jsonify({"status_code": 400, "success": False, 'message': 'No file uploaded'})
+
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({"status_code": 400, "success": False, 'message': 'No file selected'})
+    try:
+        # 1. read file excel - tested
+        df = pd.read_excel(file)
+
+        # 2. read csv file
+        # df = pd.read_csv(file)
+
+        # 3. read json file  tested
+        # df = pd.read_json(file,  orient='index')
+
+        users = df.to_dict('records')
+        connection = db.session.connection()
+        for user in users:
+            username = user['username']
+            full_name = user['full_name']
+            email = user['email']
+            phone_number = user['phone_number']
+            report_access = bool(user['report_access'])
+            view_costs = bool(user['view_costs'])
+            last_login_date = pd.to_datetime(
+                user['last_login_date'], unit='ms')
+            enabled = bool(user['enabled'])
+            is_corporated = bool(user['is_corporated'])
+            created_on = pd.to_datetime(user['created_on'])
+            modified_on = pd.to_datetime(user['modified_on'])
+
+            query = text("INSERT INTO user_app (username, full_name, email, phone_number, report_access, view_costs, last_login_date, enabled, is_corporated, created_on, modified_on) VALUES (:username, :full_name, :email, :phone_number, :report_access, :view_costs, :last_login_date, :enabled, :is_corporated, :created_on, :modified_on)")
+
+            db.session.execute(query, {'username': username, 'full_name': full_name, 'email': email, 'phone_number': phone_number, 'report_access': report_access,
+                               'view_costs': view_costs, 'last_login_date': last_login_date, 'enabled': enabled, 'is_corporated': is_corporated, 'created_on': created_on, 'modified_on': modified_on})
+        db.session.commit()
+        connection.close()
+        return jsonify({"status_code": 200, "success": True, 'message': 'Users imported successfully'})
+    except Exception as e:
+        return jsonify({"status_code": 500, "success": False, 'message': 'Error importing users: {}'.format(str(e))})
